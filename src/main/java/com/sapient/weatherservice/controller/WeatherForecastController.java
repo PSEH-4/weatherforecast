@@ -12,15 +12,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/weather")
-public class WeatherQueryController {
+public class WeatherForecastController {
 
     @Autowired
     WeatherQueryService weatherQueryService;
 
-    @PostMapping("/getForecast")
+    @PostMapping("/forecastRaw")
     public ResponseEntity getWeatherForecast(@RequestBody WeatherForecastQueryRequest weatherForecastQueryRequest) {
         try {
             return new ResponseEntity(weatherQueryService.getWeatherForecast(weatherForecastQueryRequest), HttpStatus.OK);
+        } catch (Exception ex) {
+            return new ResponseEntity(ex.toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/forecast")
+    public ResponseEntity getWeatherForecastJson(@RequestBody WeatherForecastQueryRequest weatherForecastQueryRequest) {
+        try {
+            return new ResponseEntity(weatherQueryService.getWeatherForecastJson(weatherForecastQueryRequest), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity(ex.toString(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

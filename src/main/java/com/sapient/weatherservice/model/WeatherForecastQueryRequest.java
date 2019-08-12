@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class QueryInfo {
+public class WeatherForecastQueryRequest {
 
     private String city;
     private String countryCode;

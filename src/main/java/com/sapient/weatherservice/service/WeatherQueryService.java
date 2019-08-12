@@ -1,12 +1,18 @@
 package com.sapient.weatherservice.service;
 
-import com.sapient.weatherservice.model.QueryInfo;
-import com.sapient.weatherservice.model.WeatherResponseInfo;
+import com.sapient.weatherservice.constants.Constants;
+import com.sapient.weatherservice.model.Weather;
+import com.sapient.weatherservice.model.WeatherForecastQueryRequest;
+import com.sapient.weatherservice.model.WeatherInfo;
+import com.sapient.weatherservice.model.WeatherResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class WeatherQueryService {
@@ -14,27 +20,67 @@ public class WeatherQueryService {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("${weather_url}")
-    private String weatherForecastUrl;
-
     @Value("${appkey}")
     private String appKey;
 
-    public String getWeatherInfo(QueryInfo queryInfo){
-        WeatherResponseInfo responseInfo = restTemplate.getForObject(constructUrl(queryInfo), WeatherResponseInfo.class);
-        String response = "Use sunscreen lotion";
-        if(responseInfo.getMain().getTempMax() > 40){
-            response = "Carry umbrella";
+    @Value("${weather_forecast_url}")
+    private String weatherForecastUrlLink;
+
+    @Value("${defaultCity}")
+    private String defaultCity;
+
+    public String getWeatherForecast(WeatherForecastQueryRequest weatherForecastQueryRequest){
+        Weather responseInfo = restTemplate.getForObject(constructForecastUrl(weatherForecastQueryRequest), Weather.class);
+        StringBuilder sb = new StringBuilder();
+
+        String responseSunscreen = "Use sunscreen lotion";
+        String responseUmbrella = "Carry umbrella";
+
+        for(WeatherInfo weatherInfo : responseInfo.getList()){
+            sb.append(weatherInfo.getDt());
+            sb.append("::");
+            if(weatherInfo.getMain().getTempMax() > 40){
+                sb.append(responseUmbrella);
+            }else{
+                sb.append(responseSunscreen);
+            }
+            sb.append("\n");
         }
-        return response;
+        return sb.toString();
     }
 
-    private String constructUrl(QueryInfo queryInfo) {
-        UriComponentsBuilder queryBuilder = UriComponentsBuilder.fromHttpUrl(weatherForecastUrl)
-                .queryParam("appid", appKey)
-                .queryParam("q", queryInfo.getCity() == null ? "" : queryInfo.getCity())
-                .queryParam("units","metric")
-                .queryParam("cnt","3");
+    public List<WeatherResponse> getWeatherForecastJson(WeatherForecastQueryRequest weatherForecastQueryRequest){
+        Weather responseInfo = restTemplate.getForObject(constructForecastUrl(weatherForecastQueryRequest), Weather.class);
+        StringBuilder sb = new StringBuilder();
+
+        String responseSunscreen = "Use sunscreen lotion";
+        String responseUmbrella = "Carry umbrella";
+        List<WeatherResponse> responseList = new ArrayList<WeatherResponse>();
+        for(WeatherInfo weatherInfo : responseInfo.getList()){
+            WeatherResponse response = new WeatherResponse();
+            response.setDate(weatherInfo.getDt());
+            if(weatherInfo.getMain().getTempMax() > 40){
+                response.setForecast(responseUmbrella);
+            }else{
+                response.setForecast(responseSunscreen);
+            }
+            responseList.add(response);
+        }
+        return responseList;
+    }
+
+    private String constructForecastUrl(WeatherForecastQueryRequest weatherForecastQueryRequest) {
+        UriComponentsBuilder queryBuilder = UriComponentsBuilder.fromHttpUrl(weatherForecastUrlLink)
+                .queryParam(Constants.APP_ID, appKey)
+                .queryParam(Constants.QUERY_CITY, getCityInfo(weatherForecastQueryRequest))
+                .queryParam(Constants.UNITS,Constants.CELSIUS)
+                .queryParam(Constants.CNT,Constants.CNTMAX);
         return queryBuilder.toUriString();
+    }
+
+    private String getCityInfo(WeatherForecastQueryRequest weatherForecastQueryRequest) {
+        return (weatherForecastQueryRequest.getCity() == null ||
+                weatherForecastQueryRequest.getCity().isEmpty()) ?
+                defaultCity : weatherForecastQueryRequest.getCity();
     }
 }
