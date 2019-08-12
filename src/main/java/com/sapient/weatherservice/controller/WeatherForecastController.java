@@ -1,6 +1,6 @@
 package com.sapient.weatherservice.controller;
 
-import com.sapient.weatherservice.model.QueryInfo;
+import com.sapient.weatherservice.model.WeatherForecastQueryRequest;
 import com.sapient.weatherservice.service.WeatherQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,10 +17,10 @@ public class WeatherQueryController {
     @Autowired
     WeatherQueryService weatherQueryService;
 
-    @PostMapping
-    public ResponseEntity getWeatherInfo(@RequestBody QueryInfo queryInfo) {
+    @PostMapping("/getForecast")
+    public ResponseEntity getWeatherForecast(@RequestBody WeatherForecastQueryRequest weatherForecastQueryRequest) {
         try {
-            return new ResponseEntity(weatherQueryService.getWeatherInfo(queryInfo), HttpStatus.OK);
+            return new ResponseEntity(weatherQueryService.getWeatherForecast(weatherForecastQueryRequest), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity(ex.toString(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
