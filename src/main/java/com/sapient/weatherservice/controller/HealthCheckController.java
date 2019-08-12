@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/weatherf")
-public class PingController {
+@RequestMapping("/weather")
+public class HealthCheckController {
 
-    @RequestMapping(path = "/test")
+    @RequestMapping(path = "/healthcheck")
     public String getTest(){
-        return "hi";
+        return "Weather forecast running !";
     }
 }
